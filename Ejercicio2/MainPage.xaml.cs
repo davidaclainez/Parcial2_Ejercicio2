@@ -1,4 +1,5 @@
 ﻿using Ejercicio2.Models;
+using NativeMedia;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace Ejercicio2
@@ -21,6 +23,7 @@ namespace Ejercicio2
         {
             if (txtNombre.Text != "" && txtDescrpcion.Text != "")
             {
+                Stream streamTest = await firmaSPV.GetImageStreamAsync(SignaturePad.Forms.SignatureImageFormat.Png);
                 StreamReader reader = new StreamReader(await firmaSPV.GetImageStreamAsync(SignaturePad.Forms.SignatureImageFormat.Jpeg));
                 byte[] bytedata = System.Text.Encoding.Default.GetBytes(reader.ReadToEnd());
                 string strBase64 = Convert.ToBase64String(bytedata);
@@ -31,11 +34,16 @@ namespace Ejercicio2
                     FirmaPic = strBase64
                 };
                 await App.SQLiteDB.SaveFirmaAsync(firma);
+                var status = await Permissions.RequestAsync<SaveMediaPermission>();
+
+                if (status != PermissionStatus.Granted)
+                    return;
+                await MediaGallery.SaveAsync(MediaFileType.Image, streamTest, "asdad.jpeg");
                 txtDescrpcion.Text = "";
                 txtNombre.Text = "";
                 firmaSPV.Clear();
 
-                await DisplayAlert("Registro", "Registro aniadido exitosamente", "OK");
+                await DisplayAlert("Registro", "Registro añadido exitosamente", "OK");
                 //Stream image = await firmaSPV.GetImageStreamAsync(SignaturePad.Forms.SignatureImageFormat.Png);
                 //using (FileStream file = new FileStream(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),String.Concat(txtNombre.Text,".png")), FileMode.Create, System.IO.FileAccess.Write))
                 //
